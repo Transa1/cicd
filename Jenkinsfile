@@ -95,13 +95,13 @@ def notifyBuildSuccess() {
                            Deployment URL: ${env.DEPLOYMENT_URL}
                            Build URL: ${BUILD_URL}""", 
                  subject: "SUCCESS: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
-                 to: 'team@example.com'
+                 to: 'kevinx.martinez.haro@gmail.com'
         // slackSend color: 'good', 
         //            message: "SUCCESS: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})\nDeployed to: ${env.DEPLOYMENT_URL}"
     } else {
         emailext body: "Branch ${BRANCH_NAME} built and tested successfully\n${BUILD_URL}", 
                  subject: "PASSED: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
-                 to: 'team@example.com'
+                 to: 'kevinx.martinez.haro@gmail.com'
         // slackSend color: 'good', message: "PASSED: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})"
     }
 }
@@ -109,6 +109,6 @@ def notifyBuildSuccess() {
 def notifyFailedBuild() {
     emailext body: "Build failed for ${BRANCH_NAME}\n${BUILD_URL}", 
              subject: "FAILED: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
-             to: 'team@example.com'
+             to: 'kevinx.martinez.haro@gmail.com'
     // slackSend color: 'danger', message: "FAILED: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})"
 }

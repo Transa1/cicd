@@ -45,19 +45,32 @@ pipeline {
             }
         }
         
-        stage('Deploy') {
+        stage('Deploy to Vercel') {
             when {
                 branch 'main'
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
-                // Deployment steps for main branch only
                 script {
-                    if (env.BRANCH_NAME == 'main') {
-                        echo "Deploying main branch to production..."
-                        // Add your actual deployment commands here
-                        // sh 'aws s3 sync dist/ s3://your-prod-bucket --delete'
-                    }
+                    echo "Deploying main branch to Vercel..."
+                    sh 'npm install -g vercel'
+                    
+                    // Reemplaza 'tu_token_vercel_aqui' con tu token real
+                    def vercelToken = 'tu_token_vercel_aqui'
+                    
+                    sh """
+                        vercel --prod --token y8EJ6IrL5jR14MdfMTXFyRTG --confirm
+                    """
+                    
+                    // Get and store deployment URL
+                    def deploymentUrl = sh(
+                        script: "vercel --prod --token y8EJ6IrL5jR14MdfMTXFyRTG --confirm 2>&1 | grep 'Production:' | awk '{print \$3}'",
+                        returnStdout: true
+                    ).trim()
+                    
+                    // Make URL available to notifications
+                    env.DEPLOYMENT_URL = deploymentUrl
+                    echo "Deployed to: ${env.DEPLOYMENT_URL}"
                 }
             }
         }
@@ -76,13 +89,15 @@ pipeline {
     }
 }
 
-// Helper functions for notifications
 def notifyBuildSuccess() {
     if (env.BRANCH_NAME == 'main') {
-        emailext body: "Production deployment successful!\n${BUILD_URL}", 
+        emailext body: """Production deployment successful!
+                           Deployment URL: ${env.DEPLOYMENT_URL}
+                           Build URL: ${BUILD_URL}""", 
                  subject: "SUCCESS: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
                  to: 'team@example.com'
-        // slackSend color: 'good', message: "SUCCESS: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})"
+        // slackSend color: 'good', 
+        //            message: "SUCCESS: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})\nDeployed to: ${env.DEPLOYMENT_URL}"
     } else {
         emailext body: "Branch ${BRANCH_NAME} built and tested successfully\n${BUILD_URL}", 
                  subject: "PASSED: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 

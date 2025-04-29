@@ -56,15 +56,15 @@ pipeline {
                     sh 'npm install -g vercel'
                     
                     // Reemplaza 'tu_token_vercel_aqui' con tu token real
-                    def vercelToken = 'tu_token_vercel_aqui'
+                    def vercelToken = 'y8EJ6IrL5jR14MdfMTXFyRTG'
                     
                     sh """
-                        vercel --prod --token y8EJ6IrL5jR14MdfMTXFyRTG --confirm
+                        vercel --prod --token ${vercelToken} --confirm
                     """
                     
                     // Get and store deployment URL
                     def deploymentUrl = sh(
-                        script: "vercel --prod --token y8EJ6IrL5jR14MdfMTXFyRTG --confirm 2>&1 | grep 'Production:' | awk '{print \$3}'",
+                        script: "vercel --prod --token ${vercelToken} --confirm 2>&1 | grep 'Production:' | awk '{print \$3}'",
                         returnStdout: true
                     ).trim()
                     

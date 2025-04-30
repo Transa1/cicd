@@ -23,8 +23,6 @@ function App() {
       <h3>Al yorch le huelen las patas</h3>
       <h1>eaaaaa</h1>
       <h2>este pa ver si se pone solo en rama</h2>
-      <h1>Holaaaaaa</h1>
-      <h3>El yorch es una estrella</h3>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}

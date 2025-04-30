@@ -23,6 +23,11 @@ pipeline {
                 sh 'npm run build'
             }
         }
+        stage('Test'){
+            steps{
+                sh 'npm test'
+            }
+        }
 
         stage('Conditional Deploy') {
             steps {
@@ -49,6 +54,20 @@ pipeline {
                     }
                 }
             }
+        }
+    }
+    post {
+        success {
+            slackSend(channel: '#avisos', message: "✅ Build succeeded for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            mail to: 'eildan28a@gmail.com,jorgedrluisj3@gmail.com,kevinx.martinez.haro@gmail.com',
+                 subject: "✅ Build exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "El build fue exitoso. Ver: ${env.BUILD_URL}"
+        }
+        failure {
+            slackSend(channel: '#avisos', message: "❌ Build failed for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+            mail to: 'eildan28a@gmail.com,jorgedrluisj3@gmail.com,kevinx.martinez.haro@gmail.com',
+                 subject: "❌ Build fallido: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                 body: "Hubo un fallo en el build. Ver detalles: ${env.BUILD_URL}"
         }
     }
 }

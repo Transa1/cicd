@@ -24,10 +24,10 @@ describe("App", () => {
     expect(screen.getByText("count is 1")).toBeInTheDocument();
   });
 
-  // it("renders HMR instruction", () => {
-  //   render(<App />);
-  //   expect(screen.getByText(/Edit .*src\/App\.jsx.*/i)).toBeInTheDocument();
-  // });
+  it("renders HMR instruction", () => {
+    render(<App />);
+    expect(screen.getByText(/Edit .*src\/App\.jsx.*/i)).toBeInTheDocument();
+  });
 
   it("renders custom message", () => {
     render(<App />);

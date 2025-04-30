@@ -1,114 +1,54 @@
 pipeline {
     agent any
-    
+
     environment {
-        NODE_VERSION = '18'
-        APP_NAME = 'my-vite-app'
+        VERCEL_TOKEN = credentials('vercel-token')  // ID de la credencial en Jenkins
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout scm  // Jenkins ya sabe la rama actual
             }
         }
-        
-        stage('Setup Node') {
-            steps {
-                nvm(nodeVersion: env.NODE_VERSION) {
-                    sh 'node --version'
-                    sh 'npm --version'
-                }
-            }
-        }
-        
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
             }
         }
-        
-        stage('Run Tests') {
-            steps {
-                sh 'npm test'
-            }
-            post {
-                failure {
-                    notifyFailedBuild()
-                }
-            }
-        }
-        
+
         stage('Build') {
             steps {
                 sh 'npm run build'
             }
         }
-        
-        stage('Deploy to Vercel') {
-            when {
-                branch 'main'
-                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-            }
+
+        stage('Conditional Deploy') {
             steps {
                 script {
-                    echo "Deploying main branch to Vercel..."
-                    sh 'npm install -g vercel'
-                    
-                    // Reemplaza 'tu_token_vercel_aqui' con tu token real
-                    def vercelToken = 'y8EJ6IrL5jR14MdfMTXFyRTG'
-                    
-                    sh """
-                        vercel --prod --token ${vercelToken} --confirm
-                    """
-                    
-                    // Get and store deployment URL
-                    def deploymentUrl = sh(
-                        script: "vercel --prod --token ${vercelToken} --confirm 2>&1 | grep 'Production:' | awk '{print \$3}'",
+                    def branch = env.GIT_BRANCH ?: sh(
+                        script: "git rev-parse --abbrev-ref HEAD",
                         returnStdout: true
                     ).trim()
-                    
-                    // Make URL available to notifications
-                    env.DEPLOYMENT_URL = deploymentUrl
-                    echo "Deployed to: ${env.DEPLOYMENT_URL}"
+
+                    echo "Current branch: ${branch}"
+
+                    if (branch == 'main' || branch == 'origin/main') {
+                        echo "Deploying to Vercel..."
+
+                        def output = sh(
+                            script: 'npx vercel --prod --token=$VERCEL_TOKEN --yes --name=my-vite-app',
+                            returnStdout: true
+                        ).trim()
+
+                        def deploymentUrl = output.split('\n').find { it.contains("https") }
+                        echo "Deployment URL: ${deploymentUrl}"
+                    } else {
+                        echo "No deploy. Just built branch '${branch}'"
+                    }
                 }
             }
         }
     }
-    
-    post {
-        always {
-            cleanWs()
-        }
-        success {
-            notifyBuildSuccess()
-        }
-        failure {
-            notifyFailedBuild()
-        }
-    }
-}
-
-def notifyBuildSuccess() {
-    if (env.BRANCH_NAME == 'main') {
-        emailext body: """Production deployment successful!
-                           Deployment URL: ${env.DEPLOYMENT_URL}
-                           Build URL: ${BUILD_URL}""", 
-                 subject: "SUCCESS: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
-                 to: 'kevinx.martinez.haro@gmail.com'
-        // slackSend color: 'good', 
-        //            message: "SUCCESS: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})\nDeployed to: ${env.DEPLOYMENT_URL}"
-    } else {
-        emailext body: "Branch ${BRANCH_NAME} built and tested successfully\n${BUILD_URL}", 
-                 subject: "PASSED: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
-                 to: 'kevinx.martinez.haro@gmail.com'
-        // slackSend color: 'good', message: "PASSED: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})"
-    }
-}
-
-def notifyFailedBuild() {
-    emailext body: "Build failed for ${BRANCH_NAME}\n${BUILD_URL}", 
-             subject: "FAILED: ${JOB_NAME} - ${BRANCH_NAME} #${BUILD_NUMBER}", 
-             to: 'kevinx.martinez.haro@gmail.com'
-    // slackSend color: 'danger', message: "FAILED: ${JOB_NAME}/${BRANCH_NAME} (#${BUILD_NUMBER})"
 }

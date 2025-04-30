@@ -55,5 +55,14 @@ pipeline {
                 }
             }
         }
+
+        post {
+        success {
+            slackSend(channel: '#avisos', message: "✅ Build succeeded for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+        }
+        failure {
+            slackSend(channel: '#avisos', message: "❌ Build failed for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+        }
+    }
     }
 }

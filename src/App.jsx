@@ -20,6 +20,9 @@ function App() {
       <h2>El Yorch es un crack</h2>
       <h2>El Yorch es un idolo</h2>
       <h2>Tengo Hambre</h2>
+      <h3>Al yorch le huelen las patas</h3>
+      <h1>eaaaaa</h1>
+      <h2>este pa ver si se pone solo en rama</h2>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
